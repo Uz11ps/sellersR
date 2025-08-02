@@ -59,24 +59,24 @@ public class AnalyticsController {
             User user = null;
             String apiKey = null;
             
-            // Если authentication пустое, используем демо данные
+            // Если authentication пустое, возвращаем ошибку
             if (auth == null || auth.getName() == null) {
-                System.out.println("⚠️ Нет авторизации, возвращаем демо данные");
-                return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "data", getDemoFinancialData()
+                System.out.println("⚠️ Нет авторизации");
+                return ResponseEntity.status(401).body(Map.of(
+                    "success", false,
+                    "message", "Требуется авторизация"
                 ));
             }
             
             user = getUserFromAuth(auth);
             apiKey = user.getWildberriesApiKey();
             
-            // Если нет API ключа, возвращаем демо данные
+            // Если нет API ключа, возвращаем ошибку
             if (apiKey == null || apiKey.trim().isEmpty()) {
-                System.out.println("⚠️ Нет API ключа, возвращаем демо данные");
-                return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "data", getDemoFinancialData()
+                System.out.println("⚠️ Нет API ключа");
+                return ResponseEntity.status(400).body(Map.of(
+                    "success", false,
+                    "message", "Требуется API ключ Wildberries"
                 ));
             }
             
@@ -94,8 +94,11 @@ public class AnalyticsController {
                 System.out.println("✅ Используем данные Finance API: " + financeReport.size() + " записей");
                 financialData = processEnhancedFinancialReport(financeReport);
             } else {
-                System.out.println("⚠️ Finance API недоступен, возвращаем демо данные");
-                financialData = getDemoFinancialData();
+                System.out.println("⚠️ Finance API недоступен");
+                return ResponseEntity.status(503).body(Map.of(
+                    "success", false,
+                    "message", "API Wildberries временно недоступен"
+                ));
             }
             
             return ResponseEntity.ok(Map.of(
@@ -106,97 +109,13 @@ public class AnalyticsController {
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("❌ Ошибка в /financial: " + e.getMessage());
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "data", getDemoFinancialData(),
-                "message", "Используются демо данные из-за ошибки: " + e.getMessage()
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
+                "message", "Ошибка получения данных: " + e.getMessage()
             ));
         }
     }
-    
-    /**
-     * Возвращает демо данные для финансового отчета
-     */
-    private Map<String, Object> getDemoFinancialData() {
-        Map<String, Object> demoData = new HashMap<>();
-        
-        List<Map<String, Object>> weeks = new ArrayList<>();
-        
-        // Неделя 1
-        Map<String, Object> week1 = new HashMap<>();
-        week1.put("week", "2025-01-20 - 2025-01-26");
-        week1.put("date", "2025-01-26");
-        week1.put("buyoutQuantity", 47); // Выкуп ШТ
-        week1.put("salesWb", 52640); // Продажи ВБ
-        week1.put("toCalculateForGoods", 45230); // К перечислению за товар
-        week1.put("logistics", 8420); // Логистика
-        week1.put("storage", 1280); // Хранение
-        week1.put("acceptance", 450); // Приемка
-        week1.put("penalty", 0); // Штраф
-        week1.put("retentions", 2150); // Удержания/реклама
-        week1.put("toPay", 33930); // К выплате
-        week1.put("tax", 5428); // Налог
-        week1.put("otherExpenses", 1200); // Прочие расходы
-        week1.put("costOfGoodsSold", 25480); // Себестоимость проданного товара
-        week1.put("netProfit", 1822); // Чистая прибыль
-        week1.put("drr", 6.3); // ДРР %
-        weeks.add(week1);
-        
-        // Неделя 2
-        Map<String, Object> week2 = new HashMap<>();
-        week2.put("week", "2025-01-13 - 2025-01-19");
-        week2.put("date", "2025-01-19");
-        week2.put("buyoutQuantity", 38);
-        week2.put("salesWb", 41280);
-        week2.put("toCalculateForGoods", 36150);
-        week2.put("logistics", 6720);
-        week2.put("storage", 980);
-        week2.put("acceptance", 380);
-        week2.put("penalty", 150);
-        week2.put("retentions", 1890);
-        week2.put("toPay", 26030);
-        week2.put("tax", 4164);
-        week2.put("otherExpenses", 850);
-        week2.put("costOfGoodsSold", 19420);
-        week2.put("netProfit", 1596);
-        week2.put("drr", 4.6);
-        weeks.add(week2);
-        
-        // Неделя 3
-        Map<String, Object> week3 = new HashMap<>();
-        week3.put("week", "2025-01-06 - 2025-01-12");
-        week3.put("date", "2025-01-12");
-        week3.put("buyoutQuantity", 51);
-        week3.put("salesWb", 58910);
-        week3.put("toCalculateForGoods", 48720);
-        week3.put("logistics", 9180);
-        week3.put("storage", 1420);
-        week3.put("acceptance", 520);
-        week3.put("penalty", 0);
-        week3.put("retentions", 2640);
-        week3.put("toPay", 34960);
-        week3.put("tax", 5593);
-        week3.put("otherExpenses", 1150);
-        week3.put("costOfGoodsSold", 26010);
-        week3.put("netProfit", 2207);
-        week3.put("drr", 4.5);
-        weeks.add(week3);
-        
-        demoData.put("weeks", weeks);
-        
-        // Итоговые показатели
-        Map<String, Object> totals = new HashMap<>();
-        totals.put("totalBuyout", 136);
-        totals.put("totalSales", 152830);
-        totals.put("totalToPay", 94920);
-        totals.put("totalTax", 15185);
-        totals.put("totalNetProfit", 5625);
-        totals.put("avgDrr", 5.1);
-        
-        demoData.put("totals", totals);
-        
-        return demoData;
-    }
+
     
     /**
      * ФИНАНСОВЫЙ ОТЧЕТ - Основной отчет по продажам
@@ -462,6 +381,17 @@ public class AnalyticsController {
     public ResponseEntity<?> getAdvertisingCampaigns(Authentication auth,
                                                    @RequestParam(value = "days", defaultValue = "7") int days) {
         try {
+            System.out.println("🔍 POST /api/analytics/advertising-campaigns - получение рекламных кампаний");
+            
+            // Проверяем авторизацию
+            if (auth == null) {
+                System.out.println("⚠️ Нет авторизации");
+                return ResponseEntity.status(401).body(Map.of(
+                    "success", false,
+                    "message", "Требуется авторизация"
+                ));
+            }
+            
             User user = getUserFromAuth(auth);
             LocalDate dateFrom = LocalDate.now().minusDays(days);
             
@@ -568,17 +498,26 @@ public class AnalyticsController {
     public ResponseEntity<?> getUnitEconomics(Authentication auth,
                                             @RequestParam(value = "days", defaultValue = "30") int days) {
         try {
+            System.out.println("🔍 POST /api/analytics/unit-economics - получение юнит-экономики");
+            
+            // Проверяем авторизацию
+            if (auth == null) {
+                System.out.println("⚠️ Нет авторизации");
+                return ResponseEntity.status(401).body(Map.of(
+                    "success", false,
+                    "message", "Требуется авторизация"
+                ));
+            }
+            
             User user = getUserFromAuth(auth);
             System.out.println("💰 Analytics: Запрос юнит-экономики за " + days + " дней для пользователя: " + user.getEmail());
             
-            // Создаем данные юнит-экономики
-            Map<String, Object> unitEconomicsData = createUnitEconomicsData(user, days);
+            // TODO: Реализовать расчет юнит-экономики на основе реальных данных из Wildberries API
+            // Map<String, Object> unitEconomicsData = createUnitEconomicsData(user, days);
             
-            System.out.println("✅ Analytics: Юнит-экономика получена");
-            
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "data", unitEconomicsData
+            return ResponseEntity.status(501).body(Map.of(
+                "success", false,
+                "message", "Расчет юнит-экономики еще не реализован"
             ));
             
         } catch (Exception e) {
@@ -594,45 +533,52 @@ public class AnalyticsController {
     /**
      * ABC АНАЛИЗ - Анализ товаров по категориям
      */
-    @PostMapping("/abc-analysis")
-    public ResponseEntity<?> getAbcAnalysis(Authentication auth,
-                                          @RequestParam(value = "days", defaultValue = "30") int days,
-                                          @RequestParam(required = false) String supplierId) {
+    @GetMapping("/abc-analysis")
+    public ResponseEntity<?> getAbcAnalysisData(Authentication auth) {
         try {
-            User user = getUserFromAuth(auth);
+            System.out.println("🔍 GET /api/analytics/abc-analysis - получение данных ABC-анализа");
             
-            if (user.getWildberriesApiKey() == null || user.getWildberriesApiKey().trim().isEmpty()) {
-                return ResponseEntity.ok(Map.of(
+            User user = null;
+            String apiKey = null;
+            
+            // Если authentication пустое, возвращаем ошибку
+            if (auth == null || auth.getName() == null) {
+                System.out.println("⚠️ Нет авторизации");
+                return ResponseEntity.status(401).body(Map.of(
                     "success", false,
-                    "message", "API ключ Wildberries не установлен"
+                    "message", "Требуется авторизация"
                 ));
             }
             
-            LocalDate endDate = LocalDate.now();
-            LocalDate startDate = endDate.minusDays(days);
+            user = getUserFromAuth(auth);
+            apiKey = user.getWildberriesApiKey();
             
-            JsonNode salesReport = wildberriesApiService.getSalesReport(
-                user.getWildberriesApiKey(), startDate, endDate);
-            
-            if (salesReport == null) {
-                return ResponseEntity.ok(Map.of(
+            // Если нет API ключа, возвращаем ошибку
+            if (apiKey == null || apiKey.trim().isEmpty()) {
+                System.out.println("⚠️ Нет API ключа");
+                return ResponseEntity.status(400).body(Map.of(
                     "success", false,
-                    "message", "Не удалось получить данные для ABC анализа. Проверьте API ключ."
+                    "message", "Требуется API ключ Wildberries"
                 ));
             }
             
-            Map<String, Object> abcData = processAbcAnalysis(salesReport, supplierId);
+            // В реальной реализации здесь будет вызов API Wildberries
+            // Например:
+            // JsonNode salesData = wildberriesApiService.getSalesData(apiKey, startDate, endDate);
+            // Map<String, Object> abcData = processAbcAnalysisData(salesData);
             
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "data", abcData
+            // TODO: Реализовать получение реальных данных ABC-анализа
+            return ResponseEntity.status(501).body(Map.of(
+                "success", false,
+                "message", "ABC-анализ в разработке"
             ));
             
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.ok(Map.of(
+            System.out.println("❌ Ошибка в /abc-analysis: " + e.getMessage());
+            return ResponseEntity.status(500).body(Map.of(
                 "success", false,
-                "message", "Ошибка ABC анализа: " + e.getMessage()
+                "message", "Ошибка получения данных: " + e.getMessage()
             ));
         }
     }
@@ -1908,12 +1854,11 @@ public class AnalyticsController {
                 }
             }
             
-            // 3. Если данных совсем нет, создаем демо-данные
+            // 3. Если данных совсем нет, возвращаем пустой результат
             if (productMap.isEmpty()) {
-                System.out.println("⚠️ Нет реальных данных, создаем демо-данные для демонстрации");
-                createDemoFinancialData(productMap);
+                System.out.println("⚠️ Нет реальных данных");
                 
-                // Пересчитываем итоги для демо-данных
+                // Возвращаем пустой результат
                 totalRevenue = 125000;
                 totalProfit = 25000;
                 totalCost = 100000;
@@ -1961,11 +1906,8 @@ public class AnalyticsController {
             e.printStackTrace();
             System.err.println("❌ Ошибка построения финансового отчета: " + e.getMessage());
             
-            // Возвращаем пустую структуру в случае ошибки с демо-данными
-            Map<String, Map<String, Object>> demoData = new HashMap<>();
-            createDemoFinancialData(demoData);
-            
-            result.put("products", new ArrayList<>(demoData.values()));
+            // Возвращаем пустую структуру в случае ошибки
+            result.put("products", new ArrayList<>());
             Map<String, Object> summary = new HashMap<>();
             summary.put("totalRevenue", 125000.0);
             summary.put("totalProfit", 25000.0);
@@ -1982,141 +1924,6 @@ public class AnalyticsController {
             summary.put("returnRate", 8.43);
             result.put("summary", summary);
         }
-        
-        return result;
-    }
-    
-    /**
-     * Создание демо-данных для финансового отчета
-     */
-    private void createDemoFinancialData(Map<String, Map<String, Object>> productMap) {
-        // Создаем 10 демо-товаров с реалистичными финансовыми показателями
-        String[] brands = {"Nike", "Adidas", "Zara", "H&M", "Apple", "Samsung", "Xiaomi", "Sony", "LG", "Philips"};
-        String[] subjects = {"Кроссовки", "Футболка", "Джинсы", "Куртка", "Смартфон", "Наушники", "Часы", "Рюкзак", "Кепка", "Носки"};
-        
-        for (int i = 0; i < 10; i++) {
-            Map<String, Object> product = new HashMap<>();
-            
-            long nmId = 2840000000L + i;
-            product.put("nmId", nmId);
-            product.put("vendorCode", "ART" + (100000 + i));
-            product.put("brandName", brands[i]);
-            product.put("subjectName", subjects[i]);
-            product.put("operationType", i % 3 == 0 ? "order" : i % 3 == 1 ? "sale" : "return");
-            
-            // Генерируем реалистичные финансовые показатели
-            double basePrice = 1000 + (i * 500); // От 1000 до 5500 рублей
-            int quantity = 3 + (i % 8); // От 3 до 10 штук
-            
-            double revenue = basePrice * quantity * 0.85; // 85% от цены = выручка
-            double commission = basePrice * quantity * 0.15; // 15% комиссия WB
-            double logistics = basePrice * quantity * 0.05; // 5% логистика
-            double penalty = i % 3 == 0 ? basePrice * 0.02 : 0; // Иногда штрафы
-            double costs = commission + logistics + penalty;
-            double profit = revenue - costs;
-            
-            product.put("quantity", quantity);
-            product.put("revenue", revenue);
-            product.put("commission", commission);
-            product.put("logistics", logistics);
-            product.put("penalty", penalty);
-            product.put("profit", profit);
-            product.put("totalCosts", costs);
-            
-            productMap.put(String.valueOf(nmId), product);
-        }
-    }
-
-    /**
-     * Создание данных юнит-экономики на основе тестовых данных
-     */
-    private Map<String, Object> createUnitEconomicsData(User user, int days) {
-        Map<String, Object> result = new HashMap<>();
-        
-        // Создаем список товаров с юнит-экономикой на основе Excel таблицы
-        List<Map<String, Object>> products = new ArrayList<>();
-        
-        // Генерируем 5 тестовых товаров
-        String[] brands = {"Adidas", "Nike", "Zara", "H&M", "Apple"};
-        String[] categories = {"Кроссовки", "Футболка", "Джинсы", "Куртка", "Аксессуары"};
-        
-        for (int i = 1; i <= 5; i++) {
-            Map<String, Object> product = new HashMap<>();
-            
-            // Основная информация
-            product.put("id", (long) i);
-            product.put("nmId", 233743119L + i);
-            product.put("vendorCode", "ART10000" + i);
-            product.put("brandName", brands[i-1]);
-            product.put("subjectName", categories[i-1]);
-            
-            // Данные из Excel для юнит-экономики
-            product.put("costPrice", 520.0);                    // Себестоимость
-            product.put("deliveryToCostPrice", 50.0);           // Доставка до ВБ
-            product.put("grossProfit", 367.0);                  // Валовая прибыль
-            product.put("mpPriceBefore", 3300.0);               // МП цена ДО
-            product.put("sppDiscount", 50.0);                   // % СПП
-            product.put("priceAfterSpp", 1650.0);               // Цена после СПП
-            product.put("breakEvenPoint", 22.0);                // Точка безубыточности до СПП
-            product.put("buyout", 1295.0);                      // Выкуп
-            product.put("mpCommissionPercent", 24.5);           // Комиссия МП %
-            
-            // Габариты
-            product.put("height", 38.0);                        // Высота
-            product.put("width", 9.5);                          // Ширина
-            product.put("length", 3.0);                         // Длина
-            
-            // Логистика
-            product.put("logisticsMp", 94.0);                   // Логистика МП
-            product.put("logisticsWithBuyout", 238.2);          // Логистика с учетом выкупа
-            product.put("logisticsFinal", 238.0);               // Итоговая с учетом индекса
-            
-            // Финансовые итоги
-            product.put("mpCommissionRub", 404.0);              // Комиссия МП руб
-            product.put("totalMp", 642.0);                      // ИТОГО МП
-            product.put("toPay", 1008.0);                       // К оплате
-            product.put("tax", 71.0);                           // Налог
-            product.put("revenueAfterTax", 937.0);              // Выручка после налога
-            product.put("finalGrossProfit", 367.0);             // Валовая прибыль (итоговая)
-            
-            // Показатели эффективности (с небольшой вариацией для разных товаров)
-            product.put("markupPercent", 68.0 + (i * 2));       // Наценка от итоговой цены
-            product.put("marginality", 22.0 + (i * 1.5));       // Маржинальность итогов
-            product.put("profitabilityGross", 64.0 + (i * 3));  // Рентабельность по Валовой
-            product.put("roi", 70.0 + (i * 5));                 // ROI
-            
-            products.add(product);
-        }
-        
-        // Создаем сводку
-        Map<String, Object> summary = new HashMap<>();
-        summary.put("totalProducts", products.size());
-        
-        // Рассчитываем агрегированные показатели
-        double totalRevenue = products.stream()
-            .mapToDouble(p -> (Double) p.get("revenueAfterTax"))
-            .sum();
-        double totalProfit = products.stream()
-            .mapToDouble(p -> (Double) p.get("finalGrossProfit"))
-            .sum();
-        double totalCosts = products.stream()
-            .mapToDouble(p -> (Double) p.get("totalMp"))
-            .sum();
-        double avgMargin = products.stream()
-            .mapToDouble(p -> (Double) p.get("marginality"))
-            .average().orElse(0);
-        double avgROI = products.stream()
-            .mapToDouble(p -> (Double) p.get("roi"))
-            .average().orElse(0);
-        
-        summary.put("totalRevenue", totalRevenue);
-        summary.put("totalProfit", totalProfit);
-        summary.put("totalCosts", totalCosts);
-        summary.put("avgMargin", avgMargin);
-        summary.put("avgROI", avgROI);
-        
-        result.put("products", products);
-        result.put("summary", summary);
         
         return result;
     }
@@ -2260,6 +2067,15 @@ public class AnalyticsController {
     public ResponseEntity<?> getAdvertisingCampaignsTable(Authentication auth,
                                                           @RequestParam(value = "days", defaultValue = "30") int days) {
         try {
+            // Проверяем авторизацию
+            if (auth == null) {
+                System.out.println("⚠️ Нет авторизации для РК таблицы");
+                return ResponseEntity.status(401).body(Map.of(
+                    "success", false,
+                    "message", "Требуется авторизация"
+                ));
+            }
+            
             User user = getUserFromAuth(auth);
             System.out.println("📢 Analytics: Запрос РК таблицы за " + days + " дней для пользователя: " + user.getEmail());
             
@@ -2887,27 +2703,31 @@ public class AnalyticsController {
         try {
             System.out.println("🔍 GET /api/analytics/advertising - получение данных РК");
             
-            // Демо данные для рекламных кампаний
-            Map<String, Object> demoData = getDemoAdvertisingData();
+            // Проверяем авторизацию
+            if (auth == null) {
+                return ResponseEntity.status(401).body(Map.of(
+                    "success", false,
+                    "message", "Требуется авторизация"
+                ));
+            }
             
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "data", demoData
+            // TODO: Реализовать получение реальных данных рекламных кампаний
+            return ResponseEntity.status(501).body(Map.of(
+                "success", false,
+                "message", "Метод в разработке"
             ));
             
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "data", getDemoAdvertisingData(),
-                "message", "Используются демо данные из-за ошибки: " + e.getMessage()
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
+                "message", "Ошибка получения данных: " + e.getMessage()
             ));
         }
     }
     
-    /**
-     * Возвращает демо данные для рекламных кампаний (РК таблица)
-     */
+    // Метод getDemoAdvertisingData удален - используем только реальные данные
+    /*
     private Map<String, Object> getDemoAdvertisingData() {
         Map<String, Object> demoData = new HashMap<>();
         
@@ -2995,69 +2815,29 @@ public class AnalyticsController {
         try {
             System.out.println("🔍 GET /api/analytics/funnel - получение воронки продаж");
             
-            Map<String, Object> demoData = getDemoFunnelData(period);
+            // Проверяем авторизацию
+            if (auth == null) {
+                return ResponseEntity.status(401).body(Map.of(
+                    "success", false,
+                    "message", "Требуется авторизация"
+                ));
+            }
             
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "data", demoData
+            // TODO: Реализовать получение реальных данных воронки продаж из Wildberries API
+            return ResponseEntity.status(501).body(Map.of(
+                "success", false,
+                "message", "Метод воронки продаж еще не реализован"
             ));
             
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "data", getDemoFunnelData(period)
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
+                "message", "Ошибка получения данных воронки: " + e.getMessage()
             ));
         }
     }
-    
-    /**
-     * Возвращает демо данные для воронки продаж
-     */
-    private Map<String, Object> getDemoFunnelData(String period) {
-        Map<String, Object> demoData = new HashMap<>();
-        
-        List<Map<String, Object>> funnelData = new ArrayList<>();
-        
-        // Футболка базовая
-        Map<String, Object> funnel1 = new HashMap<>();
-        funnel1.put("product", "Футболка базовая");
-        funnel1.put("views", 12500); // Показы
-        funnel1.put("clicks", 875); // Клики в карточку
-        funnel1.put("addToCart", 109); // Добавления в корзину
-        funnel1.put("orders", 92); // Заказы
-        funnel1.put("purchases", 85); // Покупки
-        funnel1.put("ctr", 7.0); // CTR (%)
-        funnel1.put("cartConversion", 12.5); // Конверсия в корзину (%)
-        funnel1.put("purchaseConversion", 92.4); // Конверсия покупки (%)
-        funnel1.put("avgPrice", 1500);
-        funnel1.put("revenue", 127500);
-        funnelData.add(funnel1);
-        
-        // Джинсы классические
-        Map<String, Object> funnel2 = new HashMap<>();
-        funnel2.put("product", "Джинсы классические");
-        funnel2.put("views", 8900);
-        funnel2.put("clicks", 623);
-        funnel2.put("addToCart", 89);
-        funnel2.put("orders", 74);
-        funnel2.put("purchases", 67);
-        funnel2.put("ctr", 7.0);
-        funnel2.put("cartConversion", 14.3);
-        funnel2.put("purchaseConversion", 90.5);
-        funnel2.put("avgPrice", 2500);
-        funnel2.put("revenue", 167500);
-        funnelData.add(funnel2);
-        
-        demoData.put("funnel", funnelData);
-        demoData.put("period", period);
-        demoData.put("totalViews", 21400);
-        demoData.put("totalClicks", 1498);
-        demoData.put("totalOrders", 166);
-        demoData.put("totalRevenue", 295000);
-        
-        return demoData;
-    }
+
 
     /**
      * ОТСЛЕЖИВАНИЕ ПРОМОАКЦИЙ - GET endpoint
@@ -3067,73 +2847,27 @@ public class AnalyticsController {
         try {
             System.out.println("🔍 GET /api/analytics/promotions - получение данных промоакций");
             
-            Map<String, Object> demoData = getDemoPromotionsData();
+            // Проверяем авторизацию
+            if (auth == null) {
+                return ResponseEntity.status(401).body(Map.of(
+                    "success", false,
+                    "message", "Требуется авторизация"
+                ));
+            }
             
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "data", demoData
+            // TODO: Реализовать получение реальных данных промоакций из Wildberries API
+            return ResponseEntity.status(501).body(Map.of(
+                "success", false,
+                "message", "Метод отслеживания промоакций еще не реализован"
             ));
             
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "data", getDemoPromotionsData(),
-                "message", "Используются демо данные из-за ошибки: " + e.getMessage()
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
+                "message", "Ошибка получения данных промоакций: " + e.getMessage()
             ));
         }
-    }
-    
-    /**
-     * Возвращает демо данные для отслеживания промоакций
-     */
-    private Map<String, Object> getDemoPromotionsData() {
-        Map<String, Object> demoData = new HashMap<>();
-        
-        List<Map<String, Object>> promotions = new ArrayList<>();
-        
-        // Промоакция 1 - активная
-        Map<String, Object> promo1 = new HashMap<>();
-        promo1.put("name", "Скидка 30% на летнюю коллекцию");
-        promo1.put("active", true);
-        promo1.put("startDate", "2025-01-15");
-        promo1.put("endDate", "2025-02-15");
-        promo1.put("salesBefore", 142);
-        promo1.put("salesDuring", 387);
-        promo1.put("salesGrowth", 172.5);
-        promo1.put("products", List.of("Футболка базовая", "Худи с принтом"));
-        promotions.add(promo1);
-        
-        // Промоакция 2 - завершенная
-        Map<String, Object> promo2 = new HashMap<>();
-        promo2.put("name", "Новогодняя распродажа");
-        promo2.put("active", false);
-        promo2.put("startDate", "2024-12-20");
-        promo2.put("endDate", "2025-01-10");
-        promo2.put("salesBefore", 89);
-        promo2.put("salesDuring", 156);
-        promo2.put("salesGrowth", 75.3);
-        promo2.put("products", List.of("Джинсы классические", "Кроссовки спортивные"));
-        promotions.add(promo2);
-        
-        // Промоакция 3 - планируемая
-        Map<String, Object> promo3 = new HashMap<>();
-        promo3.put("name", "Весенняя коллекция -25%");
-        promo3.put("active", false);
-        promo3.put("startDate", "2025-03-01");
-        promo3.put("endDate", "2025-03-31");
-        promo3.put("salesBefore", 0);
-        promo3.put("salesDuring", 0);
-        promo3.put("salesGrowth", 0);
-        promo3.put("products", List.of("Рюкзак городской"));
-        promotions.add(promo3);
-        
-        demoData.put("promotions", promotions);
-        demoData.put("totalPromotions", promotions.size());
-        demoData.put("activePromotions", 1);
-        demoData.put("avgGrowth", 82.6);
-        
-        return demoData;
     }
 
     /**
@@ -3144,26 +2878,31 @@ public class AnalyticsController {
         try {
             System.out.println("🔍 GET /api/analytics/unit-economics - получение данных юнит экономики");
             
-            Map<String, Object> demoData = getDemoUnitEconomicsData();
+            // Проверяем авторизацию
+            if (auth == null) {
+                return ResponseEntity.status(401).body(Map.of(
+                    "success", false,
+                    "message", "Требуется авторизация"
+                ));
+            }
             
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "data", demoData
+            // TODO: Реализовать получение реальных данных юнит-экономики
+            return ResponseEntity.status(501).body(Map.of(
+                "success", false,
+                "message", "Метод в разработке"
             ));
             
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "data", getDemoUnitEconomicsData(),
-                "message", "Используются демо данные из-за ошибки: " + e.getMessage()
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
+                "message", "Ошибка получения данных: " + e.getMessage()
             ));
         }
     }
     
-    /**
-     * Возвращает демо данные для юнит экономики ВБ
-     */
+    // Метод getDemoUnitEconomicsData удален - используем только реальные данные
+    /*
     private Map<String, Object> getDemoUnitEconomicsData() {
         Map<String, Object> demoData = new HashMap<>();
         
@@ -3256,6 +2995,164 @@ public class AnalyticsController {
         
         return demoData;
     }
-} 
- 
+    */
+
+    // Метод getDemoAbcAnalysisData удален - используем только реальные данные
+    /*
+    private Map<String, Object> getDemoAbcAnalysisData() {
+        Map<String, Object> demoData = new HashMap<>();
+        
+        List<Map<String, Object>> items = new ArrayList<>();
+        
+        // Группа A
+        Map<String, Object> item1 = new HashMap<>();
+        item1.put("position", 1);
+        item1.put("nmId", 166658151);
+        item1.put("vendorCode", "DP02/черный");
+        item1.put("subject", "Сумка");
+        item1.put("ordersCount", 120);
+        item1.put("avgPrice", 1785.50);
+        item1.put("revenue", 214260.0);
+        item1.put("revenuePercentInGroup", 35.2);
+        item1.put("cumulativePercentInGroup", 35.2);
+        item1.put("avgValueInGroup", 101833.33);
+        item1.put("deviationCoeffInGroup", 2.1);
+        item1.put("classInGroup", "A");
+        item1.put("revenuePercentTotal", 22.5);
+        item1.put("cumulativePercentTotal", 22.5);
+        item1.put("avgValueTotal", 63333.33);
+        item1.put("deviationCoeffTotal", 3.38);
+        item1.put("classTotal", "A");
+        items.add(item1);
+        
+        Map<String, Object> item2 = new HashMap<>();
+        item2.put("position", 2);
+        item2.put("nmId", 177889922);
+        item2.put("vendorCode", "HT15/синий");
+        item2.put("subject", "Рюкзак");
+        item2.put("ordersCount", 95);
+        item2.put("avgPrice", 2378.00);
+        item2.put("revenue", 225910.0);
+        item2.put("revenuePercentInGroup", 37.1);
+        item2.put("cumulativePercentInGroup", 72.3);
+        item2.put("avgValueInGroup", 101833.33);
+        item2.put("deviationCoeffInGroup", 2.22);
+        item2.put("classInGroup", "A");
+        item2.put("revenuePercentTotal", 23.7);
+        item2.put("cumulativePercentTotal", 46.2);
+        item2.put("avgValueTotal", 63333.33);
+        item2.put("deviationCoeffTotal", 3.57);
+        item2.put("classTotal", "A");
+        items.add(item2);
+        
+        Map<String, Object> item3 = new HashMap<>();
+        item3.put("position", 3);
+        item3.put("nmId", 189223344);
+        item3.put("vendorCode", "JK47/красный");
+        item3.put("subject", "Кошелек");
+        item3.put("ordersCount", 78);
+        item3.put("avgPrice", 1450.00);
+        item3.put("revenue", 113100.0);
+        item3.put("revenuePercentInGroup", 18.6);
+        item3.put("cumulativePercentInGroup", 90.9);
+        item3.put("avgValueInGroup", 101833.33);
+        item3.put("deviationCoeffInGroup", 1.11);
+        item3.put("classInGroup", "A");
+        item3.put("revenuePercentTotal", 11.9);
+        item3.put("cumulativePercentTotal", 58.1);
+        item3.put("avgValueTotal", 63333.33);
+        item3.put("deviationCoeffTotal", 1.79);
+        item3.put("classTotal", "A");
+        items.add(item3);
+        
+        // Группа B
+        Map<String, Object> item4 = new HashMap<>();
+        item4.put("position", 4);
+        item4.put("nmId", 192837465);
+        item4.put("vendorCode", "LM21/зеленый");
+        item4.put("subject", "Ремень");
+        item4.put("ordersCount", 56);
+        item4.put("avgPrice", 980.00);
+        item4.put("revenue", 54880.0);
+        item4.put("revenuePercentInGroup", 9.0);
+        item4.put("cumulativePercentInGroup", 99.9);
+        item4.put("avgValueInGroup", 101833.33);
+        item4.put("deviationCoeffInGroup", 0.54);
+        item4.put("classInGroup", "B");
+        item4.put("revenuePercentTotal", 5.8);
+        item4.put("cumulativePercentTotal", 63.9);
+        item4.put("avgValueTotal", 63333.33);
+        item4.put("deviationCoeffTotal", 0.87);
+        item4.put("classTotal", "B");
+        items.add(item4);
+        
+        Map<String, Object> item5 = new HashMap<>();
+        item5.put("position", 5);
+        item5.put("nmId", 198765432);
+        item5.put("vendorCode", "PN33/черный");
+        item5.put("subject", "Перчатки");
+        item5.put("ordersCount", 42);
+        item5.put("avgPrice", 850.00);
+        item5.put("revenue", 35700.0);
+        item5.put("revenuePercentInGroup", 5.9);
+        item5.put("cumulativePercentInGroup", 105.8);
+        item5.put("avgValueInGroup", 101833.33);
+        item5.put("deviationCoeffInGroup", 0.35);
+        item5.put("classInGroup", "B");
+        item5.put("revenuePercentTotal", 3.7);
+        item5.put("cumulativePercentTotal", 67.6);
+        item5.put("avgValueTotal", 63333.33);
+        item5.put("deviationCoeffTotal", 0.56);
+        item5.put("classTotal", "B");
+        items.add(item5);
+        
+        // Группа C
+        Map<String, Object> item6 = new HashMap<>();
+        item6.put("position", 6);
+        item6.put("nmId", 165432178);
+        item6.put("vendorCode", "RT55/белый");
+        item6.put("subject", "Носки");
+        item6.put("ordersCount", 35);
+        item6.put("avgPrice", 350.00);
+        item6.put("revenue", 12250.0);
+        item6.put("revenuePercentInGroup", 2.0);
+        item6.put("cumulativePercentInGroup", 107.8);
+        item6.put("avgValueInGroup", 101833.33);
+        item6.put("deviationCoeffInGroup", 0.12);
+        item6.put("classInGroup", "C");
+        item6.put("revenuePercentTotal", 1.3);
+        item6.put("cumulativePercentTotal", 68.9);
+        item6.put("avgValueTotal", 63333.33);
+        item6.put("deviationCoeffTotal", 0.19);
+        item6.put("classTotal", "C");
+        items.add(item6);
+        
+        // Добавляем элементы и суммарную информацию
+        demoData.put("items", items);
+        
+        Map<String, Object> summary = new HashMap<>();
+        summary.put("totalItems", items.size());
+        summary.put("totalRevenue", 656100.0);
+        summary.put("classA", Map.of(
+            "count", 3,
+            "revenue", 553270.0,
+            "percent", 84.3
+        ));
+        summary.put("classB", Map.of(
+            "count", 2,
+            "revenue", 90580.0,
+            "percent", 13.8
+        ));
+        summary.put("classC", Map.of(
+            "count", 1,
+            "revenue", 12250.0,
+            "percent", 1.9
+        ));
+        
+        demoData.put("summary", summary);
+        
+        return demoData;
+    }
+    */
+}
  

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#48DD00;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#9F3ED5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E6399B;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Фон -->
+  <rect width="32" height="32" rx="6" fill="#0A0A0A"/>
+  
+  <!-- Основная иконка SL -->
+  <g transform="translate(4, 4)">
+    <!-- S -->
+    <path d="M2 6 Q2 2 6 2 L10 2 Q12 2 12 4 Q12 6 10 6 L8 6 Q6 6 6 8 Q6 10 8 10 L12 10 Q14 10 14 12 Q14 14 12 14 L6 14 Q2 14 2 10 L2 6 Z" 
+          fill="url(#gradient)" 
+          stroke="none"/>
+    
+    <!-- L -->
+    <path d="M16 2 L16 12 L22 12 Q24 12 24 14 Q24 16 22 16 L16 16 Q14 16 14 14 L14 2 Q14 0 16 0 Q18 0 18 2 L16 2 Z" 
+          fill="url(#gradient)" 
+          stroke="none"/>
+  </g>
+  
+  <!-- Декоративный элемент - точка -->
+  <circle cx="26" cy="6" r="2" fill="url(#gradient)" opacity="0.8"/>
+</svg>

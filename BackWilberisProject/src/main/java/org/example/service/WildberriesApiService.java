@@ -20,6 +20,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 public class WildberriesApiService {
@@ -35,6 +37,7 @@ public class WildberriesApiService {
 
     // Базовые URL для продакшена (реальные API Wildberries)
     private static final String STATISTICS_API = "https://statistics-api.wildberries.ru";
+    private static final String ANALYTICS_API = "https://seller-analytics-api.wildberries.ru";
     private static final String ADVERT_API = "https://advert-api.wildberries.ru";
     private static final String FEEDBACKS_API = "https://feedbacks-api.wildberries.ru";
     private static final String COMMON_API = "https://common-api.wildberries.ru";
@@ -44,11 +47,86 @@ public class WildberriesApiService {
     private static final String DOCUMENTS_API = "https://documents-api.wildberries.ru";
     private static final String FINANCE_API = "https://finance-api.wildberries.ru";
     
+    // Время последнего запроса для контроля лимитов
+    private static long lastRequestTime = 0;
+    private static final long MIN_REQUEST_INTERVAL = 2000; // Увеличиваем интервал до 2 секунд для безопасности
+    
+    // Счетчик попыток для предотвращения бесконечных циклов
+    private static final int MAX_RETRY_ATTEMPTS = 3;
+    
+    // Флаг блокировки при ожидании восстановления лимитов
+    private static volatile boolean isWaitingForRateLimit = false;
+    private static volatile long rateLimitResetTime = 0;
+    
+    // Кеш для хранения последних успешных ответов
+    private static final Map<String, CachedResponse> responseCache = new ConcurrentHashMap<>();
+    private static final long CACHE_DURATION = 60000; // 1 минута
+    
+    // Глобальная блокировка для предотвращения параллельных запросов к одному эндпоинту
+    private static final ReentrantLock apiLock = new ReentrantLock();
+    
+    // Класс для хранения кешированных ответов
+    private static class CachedResponse {
+        final JsonNode data;
+        final long timestamp;
+        
+        CachedResponse(JsonNode data) {
+            this.data = data;
+            this.timestamp = System.currentTimeMillis();
+        }
+        
+        boolean isExpired() {
+            return System.currentTimeMillis() - timestamp > CACHE_DURATION;
+        }
+    }
+    
     // Backup sandbox URLs для тестирования
     private static final String STATISTICS_API_SANDBOX = "https://statistics-api-sandbox.wildberries.ru";
     private static final String ADVERT_API_SANDBOX = "https://advert-api-sandbox.wildberries.ru";
     private static final String FEEDBACKS_API_SANDBOX = "https://feedbacks-api-sandbox.wildberries.ru";
 
+    /**
+     * Метод для контроля лимитов запросов
+     */
+    private synchronized void rateLimitControl() {
+        long currentTime = System.currentTimeMillis();
+        
+        // Проверяем, не ждем ли мы восстановления лимитов
+        if (isWaitingForRateLimit && currentTime < rateLimitResetTime) {
+            long waitTime = rateLimitResetTime - currentTime;
+            System.out.println("⏸️ Ожидаем восстановления лимитов еще " + (waitTime / 1000) + " секунд...");
+            try {
+                Thread.sleep(waitTime);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+            isWaitingForRateLimit = false;
+        }
+        
+        // Обычная проверка интервала между запросами
+        long timeSinceLastRequest = currentTime - lastRequestTime;
+        if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+            try {
+                long sleepTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
+                System.out.println("⏳ Ждем " + sleepTime + " мс перед следующим запросом...");
+                Thread.sleep(sleepTime);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        
+        lastRequestTime = System.currentTimeMillis();
+    }
+    
+    /**
+     * Очистка кеша (можно вызвать при необходимости)
+     */
+    public void clearCache() {
+        responseCache.clear();
+        System.out.println("🧹 Кеш очищен");
+    }
+    
     /**
      * Проверка валидности API ключа через ping endpoints
      */
@@ -162,48 +240,12 @@ public class WildberriesApiService {
     }
 
     /**
-     * Получение финансового отчета через Finance API
-     * Эндпоинт /api/v5/supplier/reportDetailByPeriod для детального финансового анализа
+     * Получение финансового отчета через Statistics API
+     * Используем getSalesReport как основной метод для финансовых данных
      */
     public JsonNode getFinanceReport(String apiKey, LocalDate startDate, LocalDate endDate) {
-        try {
-            String dateFrom = startDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
-            String dateTo = endDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
-            
-            UriComponentsBuilder builder = UriComponentsBuilder
-                .fromHttpUrl(FINANCE_API + "/api/v5/supplier/reportDetailByPeriod")
-                .queryParam("dateFrom", dateFrom)
-                .queryParam("dateTo", dateTo)
-                .queryParam("limit", 0)
-                .queryParam("rrdid", 0);
-            
-            String url = builder.toUriString();
-            System.out.println("🔍 Запрос финансового отчета: " + url);
-
-            HttpHeaders headers = createHeaders(apiKey);  
-            HttpEntity<String> entity = new HttpEntity<>(headers);
-
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-            
-            if (response.getStatusCode().is2xxSuccessful()) {
-                System.out.println("✅ Финансовый отчет получен успешно");
-                return objectMapper.readTree(response.getBody());
-            } else {
-                System.err.println("⚠️ Неожиданный статус ответа: " + response.getStatusCode());
-                return null;
-            }
-            
-        } catch (HttpClientErrorException e) {
-            System.err.println("❌ Ошибка получения финансового отчета: HTTP " + e.getStatusCode());
-            System.err.println("Ответ: " + e.getResponseBodyAsString());
-            
-            // Fallback на statistics API если finance API недоступен
-            return getSalesReport(apiKey, startDate, endDate);
-            
-        } catch (Exception e) {
-            System.err.println("❌ Общая ошибка получения финансового отчета: " + e.getMessage());
-            return getSalesReport(apiKey, startDate, endDate);
-        }
+        // Finance API больше не используется, переходим на Statistics API
+        return getSalesReport(apiKey, startDate, endDate);
     }
 
     /**
@@ -244,7 +286,44 @@ public class WildberriesApiService {
      * Используется эндпоинт /api/v1/supplier/sales согласно документации WB
      */
     public JsonNode getSalesReport(String apiKey, LocalDate startDate, LocalDate endDate) {
+        String cacheKey = "sales_" + apiKey.substring(0, 10) + "_" + startDate + "_" + endDate;
+        
+        // Проверяем кеш
+        CachedResponse cached = responseCache.get(cacheKey);
+        if (cached != null && !cached.isExpired()) {
+            System.out.println("📦 Используем кешированные данные для sales report");
+            return cached.data;
+        }
+        
+        // Получаем блокировку для предотвращения параллельных запросов
+        apiLock.lock();
         try {
+            // Проверяем кеш еще раз после получения блокировки
+            cached = responseCache.get(cacheKey);
+            if (cached != null && !cached.isExpired()) {
+                System.out.println("📦 Используем кешированные данные для sales report (после блокировки)");
+                return cached.data;
+            }
+            
+            // Делаем запрос
+            JsonNode result = getSalesReportWithRetry(apiKey, startDate, endDate, 0);
+            
+            // Сохраняем в кеш только успешные ответы
+            if (result != null) {
+                responseCache.put(cacheKey, new CachedResponse(result));
+            }
+            
+            return result;
+        } finally {
+            apiLock.unlock();
+        }
+    }
+    
+    private JsonNode getSalesReportWithRetry(String apiKey, LocalDate startDate, LocalDate endDate, int attemptNumber) {
+        try {
+            // Контроль лимитов запросов
+            rateLimitControl();
+            
             // Формат даты для WB API: YYYY-MM-DD
             String dateFrom = startDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
             
@@ -278,6 +357,51 @@ public class WildberriesApiService {
         } catch (HttpClientErrorException e) {
             System.err.println("❌ HTTP ошибка при получении отчета продаж: " + e.getStatusCode());
             System.err.println("Ответ сервера: " + e.getResponseBodyAsString());
+            
+            // Обработка 429 Too Many Requests
+            if (e.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS) {
+                // Проверяем количество попыток
+                if (attemptNumber >= MAX_RETRY_ATTEMPTS - 1) {
+                    System.err.println("❌ Превышено максимальное количество попыток (" + MAX_RETRY_ATTEMPTS + ")");
+                    return null;
+                }
+                
+                // Получаем заголовки из ответа
+                HttpHeaders headers = e.getResponseHeaders();
+                String retryAfter = headers != null ? headers.getFirst("X-Ratelimit-Retry") : null;
+                String resetTime = headers != null ? headers.getFirst("X-Ratelimit-Reset") : null;
+                
+                int waitSeconds = 5; // По умолчанию 5 секунд
+                
+                if (retryAfter != null) {
+                    try {
+                        waitSeconds = Integer.parseInt(retryAfter);
+                    } catch (NumberFormatException nfe) {
+                        // Используем значение по умолчанию
+                    }
+                }
+                
+                // Устанавливаем глобальную блокировку
+                isWaitingForRateLimit = true;
+                rateLimitResetTime = System.currentTimeMillis() + (waitSeconds * 1000L);
+                
+                System.out.println("⏳ Превышен лимит запросов (попытка " + (attemptNumber + 1) + "/" + MAX_RETRY_ATTEMPTS + 
+                                 "). Ждем " + waitSeconds + " секунд перед повторной попыткой...");
+                if (resetTime != null) {
+                    System.out.println("   Лимит восстановится через " + resetTime + " секунд");
+                }
+                
+                try {
+                    Thread.sleep(waitSeconds * 1000L); // Ждем указанное количество секунд
+                    isWaitingForRateLimit = false; // Снимаем блокировку
+                    // Рекурсивный вызов для повторной попытки
+                    return getSalesReportWithRetry(apiKey, startDate, endDate, attemptNumber + 1);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    isWaitingForRateLimit = false; // Снимаем блокировку при прерывании
+                    return null;
+                }
+            }
             
             // Пробуем альтернативный эндпоинт или sandbox
             if (e.getStatusCode() == HttpStatus.NOT_FOUND || e.getStatusCode() == HttpStatus.FORBIDDEN) {

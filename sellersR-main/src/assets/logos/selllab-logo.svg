@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 60" fill="none">
+  <defs>
+    <linearGradient id="logoGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#48DD00;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#9F3ED5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E6399B;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="logoGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#52A529;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#AD66D5;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Иконка -->
+  <g transform="translate(0, 8)">
+    <!-- Основная форма S -->
+    <path d="M8 0 C16 0, 24 4, 24 12 C24 16, 20 20, 16 20 L8 20 C4 20, 0 24, 0 28 C0 32, 4 36, 8 36 L32 36 C40 36, 48 40, 48 48 C48 52, 44 56, 40 56 L8 56 C0 56, -8 52, -8 44" 
+          stroke="url(#logoGrad1)" 
+          stroke-width="4" 
+          fill="none" 
+          stroke-linecap="round"/>
+    
+    <!-- Акцентные элементы -->
+    <circle cx="40" cy="12" r="3" fill="url(#logoGrad1)"/>
+    <circle cx="8" cy="44" r="3" fill="url(#logoGrad2)"/>
+    
+    <!-- Стрелка вверх -->
+    <path d="M52 28 L58 22 L64 28" 
+          stroke="url(#logoGrad1)" 
+          stroke-width="3" 
+          fill="none" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"/>
+    <line x1="58" y1="22" x2="58" y2="40" 
+          stroke="url(#logoGrad1)" 
+          stroke-width="3" 
+          stroke-linecap="round"/>
+  </g>
+  
+  <!-- Текст SellLab -->
+  <g transform="translate(75, 0)">
+    <!-- Sell -->
+    <text x="0" y="22" font-family="Inter, sans-serif" font-size="18" font-weight="700" fill="url(#logoGrad1)">Sell</text>
+    
+    <!-- Lab -->
+    <text x="0" y="44" font-family="Inter, sans-serif" font-size="18" font-weight="700" fill="url(#logoGrad2)">Lab</text>
+    
+    <!-- Подзаголовок -->
+    <text x="0" y="58" font-family="Inter, sans-serif" font-size="8" font-weight="500" fill="#AD66D5" opacity="0.8">Analytics Platform</text>
+  </g>
+</svg>
