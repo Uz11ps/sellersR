@@ -1,0 +1,51 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/wilberis_analytics
+    username: your_db_username
+    password: your_db_password
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  security:
+    cors:
+      allowed-origins: "http://localhost:3000"
+      allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
+      allowed-headers: "*"
+      allow-credentials: true
+
+jwt:
+  secret: "your_jwt_secret_key_here"
+  expiration: 86400000 # 24 hours
+
+telegram:
+  bot:
+    token: ${TELEGRAM_BOT_TOKEN:your_telegram_bot_token_here}
+    username: "your_bot_username"
+
+wildberries:
+  api:
+    # Тестовый контур (sandbox)
+    statistics-url: "https://statistics-api-sandbox.wildberries.ru"
+    advert-url: "https://advert-api-sandbox.wildberries.ru"
+    feedbacks-url: "https://feedbacks-api-sandbox.wildberries.ru"
+    common-url: "https://common-api.wildberries.ru"
+    # Продакшн URL-ы (раскомментировать когда будете переходить на продакшн)
+    # statistics-url: "https://statistics-api.wildberries.ru"
+    # advert-url: "https://advert-api.wildberries.ru"
+    # feedbacks-url: "https://feedbacks-api.wildberries.ru"
+
+logging:
+  level:
+    org.example: DEBUG
+    org.springframework.security: DEBUG 

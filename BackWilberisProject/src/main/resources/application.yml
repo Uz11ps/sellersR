@@ -1,0 +1,60 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/wilberis_analytics
+    username: postgres
+    password: root
+    driver-class-name: org.postgresql.Driver
+    
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    generate-ddl: true
+
+  sql:
+    init:
+      mode: always
+      platform: postgresql
+      schema-locations: classpath:database_setup.sql
+
+  security:
+    cors:
+      allowed-origins: "http://localhost:3000"
+      allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
+      allowed-headers: "*"
+      allow-credentials: true
+
+jwt:
+  secret: "WilberisProjectSecretKeyForJWT2024!@#$%^&*()_+=-{}[]|\\:;\"'<>,.?/~`"
+  expiration: 86400000 # 24 hours
+
+telegram:
+  bot:
+    token: "7129276727:AAHW4CscuEQsFbiirVdwr38p-rRqJr9n2PQ"
+    username: "SellersWilberis_bot"
+
+wildberries:
+  api:
+    # Тестовый контур (sandbox)
+    statistics-url: "https://statistics-api-sandbox.wildberries.ru"
+    advert-url: "https://advert-api-sandbox.wildberries.ru"
+    feedbacks-url: "https://feedbacks-api-sandbox.wildberries.ru"
+    common-url: "https://common-api.wildberries.ru"
+    # Продакшн URL-ы (раскомментировать когда будете переходить на продакшн)
+    # statistics-url: "https://statistics-api.wildberries.ru"
+    # advert-url: "https://advert-api.wildberries.ru"
+    # feedbacks-url: "https://feedbacks-api.wildberries.ru"
+
+logging:
+  level:
+    org.example: DEBUG
+    org.springframework.security: DEBUG 

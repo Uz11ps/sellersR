@@ -1,0 +1,747 @@
+.auth-modal-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 55, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: grid;
+  place-items: center;
+  z-index: 1050;
+  animation: fadeIn 0.3s ease-out;
+  padding: 16px;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.auth-modal {
+  background: #000037;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  position: relative;
+  animation: slideInUp 0.4s ease-out;
+  margin: 0;
+  box-sizing: border-box;
+  transform: none;
+  left: auto;
+  top: auto;
+}
+
+/* Заголовок модалки */
+.auth-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.auth-modal-logo {
+  display: flex;
+  align-items: center;
+}
+
+.modal-logo-image {
+  height: 32px;
+  width: auto;
+  filter: drop-shadow(0 0 8px rgba(72, 221, 0, 0.3));
+}
+
+.auth-modal-close {
+  width: 32px;
+  height: 32px;
+  background: var(--bg-surface);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: var(--font-size-lg);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-modal-close:hover {
+  background: var(--color-error);
+  color: var(--color-white);
+  border-color: var(--color-error);
+  transform: scale(1.1);
+}
+
+/* Контент модалки */
+.auth-modal-content {
+  padding: var(--spacing-xl);
+  min-height: 500px; /* Минимальная высота для избежания скачков при переключении табов */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+/* Табы */
+.auth-tabs {
+  display: flex;
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  padding: 4px;
+  margin-bottom: var(--spacing-xl);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.auth-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.auth-tab:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.auth-tab-active {
+  background: var(--gradient-primary);
+  color: var(--color-white);
+  box-shadow: var(--shadow-sm);
+}
+
+.tab-icon {
+  font-size: var(--font-size-base);
+}
+
+/* Заголовок формы */
+.auth-header {
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+}
+
+.auth-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-sm) 0;
+}
+
+.auth-subtitle {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: var(--line-height-relaxed);
+}
+
+/* Форма */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.form-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+
+.form-input {
+  padding: var(--spacing-md);
+  background: var(--bg-surface);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  font-size: var(--font-size-base);
+  font-family: inherit;
+  transition: all var(--transition-normal);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--color-primary-green);
+  box-shadow: 0 0 0 3px rgba(72, 221, 0, 0.1);
+  background: var(--bg-surface-hover);
+}
+
+.form-input::placeholder {
+  color: var(--text-muted);
+}
+
+.form-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-input-error {
+  border-color: var(--color-error);
+}
+
+.form-input-error:focus {
+  border-color: var(--color-error);
+  box-shadow: 0 0 0 3px rgba(255, 71, 87, 0.1);
+}
+
+.form-error {
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Сообщения */
+.error-message,
+.success-message {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.error-message {
+  background: rgba(255, 71, 87, 0.1);
+  border: 1px solid rgba(255, 71, 87, 0.2);
+  color: var(--color-error);
+}
+
+.success-message {
+  background: rgba(72, 221, 0, 0.1);
+  border: 1px solid rgba(72, 221, 0, 0.2);
+  color: var(--color-success);
+}
+
+.error-icon,
+.success-icon {
+  font-size: var(--font-size-base);
+  flex-shrink: 0;
+}
+
+/* Кнопка отправки */
+.auth-submit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--gradient-primary);
+  border: none;
+  border-radius: var(--radius-lg);
+  color: var(--color-white);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.auth-submit-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.auth-submit-btn:hover:not(:disabled)::before {
+  left: 100%;
+}
+
+.auth-submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
+}
+
+.auth-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: var(--shadow-md);
+}
+
+.loading-spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid var(--color-white);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Верификация */
+.verification-form {
+  animation: slideInUp 0.4s ease-out;
+}
+
+.verification-header {
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+}
+
+.verification-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto var(--spacing-lg);
+  background: var(--gradient-primary);
+  border-radius: var(--radius-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-3xl);
+  box-shadow: var(--shadow-lg);
+}
+
+.verification-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-sm) 0;
+}
+
+.verification-subtitle {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: var(--line-height-relaxed);
+}
+
+/* Telegram info */
+.telegram-info {
+  margin-bottom: var(--spacing-xl);
+}
+
+.telegram-card {
+  background: var(--bg-surface);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  border-left: 4px solid var(--color-primary-green);
+}
+
+/* Блок отображения кода верификации */
+.verification-code-display {
+  background: rgba(72, 221, 0, 0.1);
+  border: 1px solid rgba(72, 221, 0, 0.3);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  margin: var(--spacing-md) 0;
+  text-align: center;
+}
+
+.code-label {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.code-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  margin: var(--spacing-sm) 0;
+}
+
+.code-value {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary-green);
+  font-family: var(--font-family-mono);
+  letter-spacing: 4px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: rgba(72, 221, 0, 0.05);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(72, 221, 0, 0.2);
+  min-width: 120px;
+}
+
+.copy-code-btn {
+  background: var(--bg-surface);
+  border: 1px solid rgba(72, 221, 0, 0.3);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-xs);
+  cursor: pointer;
+  font-size: var(--font-size-base);
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+}
+
+.copy-code-btn:hover {
+  background: rgba(72, 221, 0, 0.1);
+  border-color: var(--color-primary-green);
+  transform: scale(1.05);
+}
+
+.code-note {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  margin-top: var(--spacing-xs);
+  font-style: italic;
+}
+
+.telegram-bot-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.telegram-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--gradient-primary);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);
+  flex-shrink: 0;
+}
+
+.bot-name {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  font-family: var(--font-family-mono);
+}
+
+.bot-description {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.telegram-instructions {
+  color: var(--text-secondary);
+}
+
+.telegram-instructions ol {
+  margin: 0;
+  padding-left: var(--spacing-lg);
+  line-height: var(--line-height-relaxed);
+}
+
+.telegram-instructions li {
+  margin-bottom: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+}
+
+.telegram-instructions strong {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.instruction-note {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: rgba(72, 221, 0, 0.1);
+  border: 1px solid rgba(72, 221, 0, 0.2);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.instruction-note strong {
+  color: var(--color-success);
+}
+
+/* Поле ввода кода */
+.verification-input {
+  text-align: center;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 4px;
+  font-family: var(--font-family-mono);
+}
+
+/* Действия верификации */
+.verification-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.back-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-lg);
+  color: var(--text-secondary);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.back-btn:hover:not(:disabled) {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border-color: var(--color-primary-green);
+}
+
+.back-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Подвал модалки */
+.auth-modal-footer {
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.footer-text {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.footer-link {
+  background: none;
+  border: none;
+  color: var(--color-primary-green);
+  font-size: inherit;
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: color var(--transition-normal);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  transition: text-decoration-color var(--transition-normal);
+}
+
+.footer-link:hover:not(:disabled) {
+  color: var(--color-secondary-green);
+  text-decoration-color: var(--color-secondary-green);
+}
+
+.footer-link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Анимации */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Блокируем прокрутку body когда модальное окно открыто */
+body.modal-open {
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* Общие ошибки */
+.general-error {
+  text-align: center;
+  margin: 12px 0;
+  padding: 12px;
+  background: rgba(255, 59, 48, 0.1);
+  border: 1px solid rgba(255, 59, 48, 0.3);
+  border-radius: 8px;
+}
+
+
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .auth-modal {
+    max-width: 100%;
+    border-radius: 12px;
+    max-height: 100vh;
+    margin: 0;
+    transform: none;
+    left: auto;
+    top: auto;
+  }
+  
+  .auth-modal-header,
+  .auth-modal-content,
+  .auth-modal-footer {
+    padding-left: var(--spacing-lg);
+    padding-right: var(--spacing-lg);
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+  
+  .auth-title {
+    font-size: var(--font-size-xl);
+  }
+  
+  .verification-icon {
+    width: 60px;
+    height: 60px;
+    font-size: var(--font-size-2xl);
+  }
+  
+  .verification-title {
+    font-size: var(--font-size-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-modal-overlay {
+    padding: 8px;
+  }
+  
+  .auth-modal {
+    margin: 0;
+    width: calc(100vw - 16px);
+    max-width: none;
+    transform: none;
+    left: auto;
+    top: auto;
+  }
+  
+  .auth-modal-header,
+  .auth-modal-content,
+  .auth-modal-footer {
+    padding-left: var(--spacing-md);
+    padding-right: var(--spacing-md);
+  }
+  
+  .auth-modal-header {
+    padding-top: var(--spacing-md);
+    padding-bottom: var(--spacing-md);
+  }
+  
+  .auth-modal-content {
+    padding-top: var(--spacing-lg);
+    padding-bottom: var(--spacing-lg);
+    min-height: 400px; /* Уменьшенная высота для мобильных */
+  }
+  
+  .modal-logo-image {
+    height: 24px;
+  }
+  
+  .auth-tabs {
+    margin-bottom: var(--spacing-lg);
+  }
+  
+  .auth-tab {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 12px;
+  }
+  
+  .form-input {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+  
+  .auth-submit-btn {
+    padding: var(--spacing-sm) var(--spacing-lg);
+  }
+  
+  .telegram-card {
+    padding: var(--spacing-md);
+  }
+  
+  .telegram-instructions ol {
+    padding-left: var(--spacing-md);
+  }
+}
+
+/* Улучшенная доступность */
+@media (prefers-reduced-motion: reduce) {
+  .auth-modal-overlay,
+  .auth-modal {
+    animation: none;
+  }
+  
+  .verification-form {
+    animation: none;
+  }
+  
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Фокус для клавиатурной навигации */
+.form-input:focus,
+.auth-tab:focus,
+.auth-submit-btn:focus,
+.back-btn:focus,
+.footer-link:focus,
+.auth-modal-close:focus {
+  outline: 2px solid var(--color-primary-green);
+  outline-offset: 2px;
+}
+
+/* Hover эффекты только для устройств с мышью */
+@media (hover: none) and (pointer: coarse) {
+  .auth-submit-btn:hover {
+    transform: none;
+  }
+  
+  .auth-modal-close:hover {
+    transform: none;
+  }
+}
